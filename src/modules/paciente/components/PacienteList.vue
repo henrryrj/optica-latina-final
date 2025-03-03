@@ -96,6 +96,11 @@
 
 <script>
 export default {
+    watch:{
+        paciente(newValue,oldValue){
+            console.log(newValue)
+        }
+    },
     data() {
         return {
             listaPacientes: [],
