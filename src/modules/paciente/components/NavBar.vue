@@ -1,10 +1,7 @@
 <template>
-    <nav class="navbar bg-primary">
+    <nav class="navbar bg-primary fixed-top">
         <a class="navbar-brand text-white">
-            <img src="@/assets/logo.png" 
-                 alt="Vue Logo"
-                 height="24"
-                 class="d-inline-block align-text-top mx-2">
+            <img src="@/assets/logo.png" alt="Vue Logo" height="24" class="d-inline-block align-text-top mx-2">
 
             Optica Latina
         </a>

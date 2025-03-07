@@ -1,3 +1,5 @@
+import moment from "moment";
+
 /**
  *
  * @param {String} query - El valor a buscar el values
@@ -49,4 +51,22 @@ export function filterValueInclude(query, values, filterKey) {
     });
 
     return salida;
+}
+export function formatDate(dateString) {
+    const date = new Date(dateString);
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, "0"); // Asegura dos dígitos
+    const day = String(date.getDate()).padStart(2, "0"); // Asegura dos dígitos
+    return `${day}-${month}-${year}`;
+}
+export function formatDateTime(dateString) {
+    const date = new Date(dateString);
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, "0"); // Asegura dos dígitos
+    const day = String(date.getDate()).padStart(2, "0"); // Asegura dos dígitos
+    const hours = String(date.getHours()).padStart(2, "0"); // Asegura dos dígitos
+    const minutes = String(date.getMinutes()).padStart(2, "0"); // Asegura dos dígitos
+    const seconds = String(date.getSeconds()).padStart(2, "0"); // Asegura dos dígitos
+
+    return `${day}-${month}-${year} ${hours}:${minutes}:${seconds}`;
 }

@@ -17,27 +17,28 @@
     <div class="col-12 col-sm-6 col-md-6 align-self-end">
       <div class="form-group">
         <label for="">Pacientes</label>
-        <v-select label="nombre" :options="listaPacientes" v-model="paciente"
+        <v-select label="nombre" :options="getPacientes" v-model="paciente"
           @update:modelValue="pacienteSelecionado"></v-select>
       </div>
     </div>
   </div>
   <div class="row mt-2">
     <div class="col-12">
-      <div class="table-responsive">
-        <table class="table table-sm table-bordered">
-          <thead class="table-info">
+      <div class="table-responsive" style="max-height: 400px; overflow-y: auto; scrollbar-width: none;">
+        <table class="table table-sm table-bordered ">
+          <thead class="table-info sticky-top" style="z-index: 1020;">
             <tr>
               <th style="width: 1px">#</th>
               <th class="text-center"></th>
+              <th class="text-center">Fecha</th>
               <th class="text-center">Nombre</th>
               <th class="text-center">Celular</th>
             </tr>
           </thead>
 
           <tbody>
-            <tr class="p-0">
-              <td colspan="4" class="p-0">
+            <tr class="p-0 sticky-top" style="top: 38px; background: white; z-index: 1010;">
+              <td colspan="5" class="p-0">
                 <input class="form-control form-control-sm border-0 rounded-0" placeholder="Buscar..."
                   v-model="textoBusqueda" autocomplete="off" />
               </td>
@@ -47,9 +48,16 @@
               <th scope="row">{{ index + 1 }}</th>
               <td>
                 <button class="btn btn-warning btn-sm">
-                  <i class="fa-solid fa-eye me-2"></i><span class="d-none d-md-inline-block">Ver Consultas</span>
+                  <i class="fas fa-eye me-0 me-md-2"></i><span class="d-none  d-md-inline-block">Ver Consultas</span>
+                </button>
+                <button class="btn btn-info btn-sm m-2" @click="editar">
+                  <i class="fas fa-pencil-alt"></i>
+                </button>
+                <button class="btn btn-danger btn-sm" @click="eliminar">
+                  <i class="fas fa-trash-alt"></i>
                 </button>
               </td>
+              <td>{{ item.fecha }}</td>
               <td>{{ item.nombre }}</td>
               <td class="text-end">{{ item.celular }}</td>
             </tr>
@@ -60,7 +68,7 @@
   </div>
   <!-- Modal accesorio -->
   <div class="col-12 col-sm-10 col-md-10">
-    <div class="modal" tabindex="-1" role="dialog" id="modalPaciente" ref="modalRef">
+    <div class="modal" tabindex="-1" aria-label="true" role="dialog" id="modalPaciente" ref="modalRef">
       <div class="modal-dialog modal-dialog-scrollable" role="document">
         <div class="modal-content" v-if="formData">
           <div class="modal-header">
@@ -72,20 +80,21 @@
           <div class="modal-body">
             <div class="col-12 form-group">
               <label>Nombre</label>
-              <input type="text" class="form-control form-control-sm" placeholder="Ingrese un nombre"
-                v-model="formData.nombre" />
+              <input type="text" class="form-control form-control-sm text-uppercase" placeholder="Ingrese un nombre"
+                v-model.trim="formData.nombre" />
             </div>
             <div class="col-12 form-group">
               <label>Celular</label>
               <input type="text" class="form-control form-control-sm" placeholder="Ingrese un número de celular"
-                v-model="formData.celular" />
+                v-model.trim="formData.celular" />
             </div>
           </div>
           <div class="modal-footer">
             <button type="button" class="btn btn-primary btn-sm" @click="guardar" :disabled="loadingSave">
-              <i class="fas fa-save me-2"></i> <span>Guardar</span>
+              <i class="fas fa-save me-2"></i> <span>{{ modalMode == 0 ? "Guardar" : "Editar" }}</span>
             </button>
-            <button type="button" class="btn btn-danger btn-sm" data-bs-dismiss="modal" @click="cerrar">
+            <button type="button" class="btn btn-danger btn-sm" data-bs-dismiss="modal" aria-label="Close"
+              @click="cerrar">
               <i class="fas fa-times text-white me-2"></i><span>Cerrar</span>
             </button>
           </div>
@@ -97,28 +106,31 @@
 </template>
 
 <script>
-import { Modal } from "bootstrap";
+import { Modal } from 'bootstrap';
+import { mapGetters, mapActions } from "vuex";
 import { filterValueInclude } from "../../../helpers";
+import Swal from "sweetalert2";
+
 filterValueInclude;
 export default {
   components: {},
   computed: {
+    ...mapGetters("paciente", ["getPacientes"]),
     filteredList() {
-      if (!this.listaPacientes || this.listaPacientes.length <= 0) {
+      if (!this.getPacientes || this.getPacientes.length <= 0) {
         return [];
       }
       if (!this.textoBusqueda) {
-        return this.listaPacientes;
+        return this.getPacientes;
       }
-      const filterKey = ["id", "nombre", "celular"];
-      return this.listaPacientes.filter((el) => {
+      const filterKey = ["id", "fecha", "nombre", "celular"];
+      return this.getPacientes.filter((el) => {
         return filterValueInclude(this.textoBusqueda, el, filterKey);
       });
     },
   },
   data() {
     return {
-      listaPacientes: [],
       textoBusqueda: "",
       paciente: null,
       filaTrasacSal: -1,
@@ -129,6 +141,7 @@ export default {
       formData: {
         id: null,
         nombre: "",
+        fecha: new Date(),
         celular: "",
       },
     };
@@ -137,24 +150,9 @@ export default {
   mounted() {
     this.modalInstance = new Modal(this.$refs.modalRef);
   },
-  created() {
-    this.listaPacientes = [
-      { id: 1, nombre: " Juan Pérez", celular: "78945612" },
-      { id: 2, nombre: "María Gómez", celular: "76543210" },
-      {
-        id: 3,
-        nombre: "Carlos Rodríguez",
-        celular: "74185296",
-      },
-      {
-        id: 4,
-        nombre: "Ana Fernández",
-        celular: "69874512",
-      },
-      { id: 5, nombre: "Luis Martínez", celular: "68794523" },
-    ];
-  },
+  created() { },
   methods: {
+    ...mapActions('paciente', ['loadPaciente', 'updatePaciente', 'createPaciente', 'delPaciente', 'nombreExiste']),
     pacienteSelecionado() {
       console.log("pacienteSelecionado", this.paciente);
     },
@@ -162,37 +160,72 @@ export default {
       this.filaTrasacSal = index;
       this.formData = { ...item };
     },
-    okNuevo() {
-      console.log("ok nuevo");
-    },
     nuevo() {
-      this.formData = { id: null, nombre: "", celular: "" };
+      this.limpiarFormData();
       this.modalMode = 0;
       this.modalInstance.show();
     },
     editar() {
-      this.modalMode = 1
+      this.modalMode = 1;
       if (this.formData.id === null) {
-        this.$toast.error('Seleccione un paciente de la lista');
+        this.$toast.error("Seleccione un paciente de la lista");
         return;
       }
       this.modalInstance.show();
     },
     eliminar() {
       if (this.formData.id === null) {
-        this.$toast.error('Seleccione un paciente de la lista');
+        this.$toast.error("Seleccione un paciente de la lista");
         return;
       }
+
+      Swal.fire({
+        title: `¿Estás seguro que quiere eliminar a ${this.formData.nombre}?`,
+        text: "Esta acción no se puede deshacer",
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonText: "Sí, eliminar",
+        cancelButtonText: "Cancelar"
+      }).then((result) => {
+        if (result.isConfirmed) {
+          this.delPaciente(this.formData);
+          this.$toast.success("Paciente eliminado correctamente");
+          this.limpiarFormData();
+        }
+      });
     },
     cerrar() {
       this.modalInstance.hide();
     },
-    guardar(data) {
-      console.log("guardar" + data);
+    async guardar() {
+      this.loadingSave = true;
+      if (this.formData.nombre === "") {
+        this.$toast.error('El Nombre no puede ser vació');
+        return;
+      }
+      if (this.modalMode === 0) {
+        const existePaciente = await this.nombreExiste(this.formData.nombre);
+        if (existePaciente) {
+          this.$toast.error(`El Paciente ${this.formData.nombre} ya existe`);
+          return;
+        }
+        this.createPaciente(this.formData);
+      } else {
+        this.updatePaciente(this.formData);
+      }
+      this.$toast.success("Cambios guardados correctamente");
       this.modalInstance.hide();
+      this.limpiarFormData();
+      this.loadingSave = false;
     },
+    limpiarFormData() {
+      this.filaTrasacSal = -1;
+      this.formData = { id: null, fecha: new Date(), nombre: "", celular: "" };
+    }
   },
 };
 </script>
 
-<style></style>
+<style>
+
+</style>

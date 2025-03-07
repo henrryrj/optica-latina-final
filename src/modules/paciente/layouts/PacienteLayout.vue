@@ -1,6 +1,13 @@
 <template>
     <NavBar />
-    <main class="container p-4">
+    <div class="row justify-content-center align-items-center" v-if="isLoading">
+        <div class="col-4 alert alert-info text-center mt-5">
+            Espere por favor ...
+            <h3 class="mt-2"> <i class="fa fa-spin fa-sync"></i></h3>
+        </div>
+    </div>
+
+    <main class="container p-4" v-else>
         <ul class="nav nav-tabs" id="myTab" role="tablist">
             <li class="nav-item">
                 <a :class="['nav-link', { active: activeTab === 'pacientes' }]" id="home-tab" data-toggle="tab"
@@ -27,12 +34,18 @@
 </template>
 <script>
 import { defineAsyncComponent } from 'vue'
-
+import { mapActions, mapState } from 'vuex'
 export default {
     components: {
 
         NavBar: defineAsyncComponent(() => import('../components/NavBar.vue')),
         PacienteList: defineAsyncComponent(() => import('../components/PacienteList.vue')),
+    },
+    computed: {
+        ...mapState('paciente', ['isLoading'])
+    },
+    created() {
+        this.loadPacientes();
     },
     data() {
         return {
@@ -40,6 +53,7 @@ export default {
         }
     },
     methods: {
+        ...mapActions('paciente', ['loadPacientes']),
         changeTab(tab) {
             this.activeTab = tab
         }
