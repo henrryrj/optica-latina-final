@@ -27,7 +27,7 @@
             </div>
             <div :class="['tab-pane fade', { active: activeTab === 'consultas', show: activeTab === 'consultas' }]"
                 id="profile" role="tabpanel" aria-labelledby="profile-tab">
-                Consultas
+                <ConsultasList />
             </div>
         </div>
     </main>
@@ -40,6 +40,7 @@ export default {
 
         NavBar: defineAsyncComponent(() => import('../components/NavBar.vue')),
         PacienteList: defineAsyncComponent(() => import('../components/PacienteList.vue')),
+        ConsultasList: defineAsyncComponent(() => import('../components/ConsultasList.vue')),
     },
     computed: {
         ...mapState('paciente', ['isLoading'])

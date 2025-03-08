@@ -52,14 +52,18 @@ export function filterValueInclude(query, values, filterKey) {
 
     return salida;
 }
-export function formatDate(dateString) {
+export function formatDate(dateString, modo = false) {
     const date = new Date(dateString);
     const year = date.getFullYear();
     const month = String(date.getMonth() + 1).padStart(2, "0"); // Asegura dos dígitos
     const day = String(date.getDate()).padStart(2, "0"); // Asegura dos dígitos
+    if (modo) {
+        return `${year}-${month}-${day}`;
+    }
     return `${day}-${month}-${year}`;
+
 }
-export function formatDateTime(dateString) {
+export function formatDateTime(dateString, modo = false) {
     const date = new Date(dateString);
     const year = date.getFullYear();
     const month = String(date.getMonth() + 1).padStart(2, "0"); // Asegura dos dígitos
@@ -67,6 +71,14 @@ export function formatDateTime(dateString) {
     const hours = String(date.getHours()).padStart(2, "0"); // Asegura dos dígitos
     const minutes = String(date.getMinutes()).padStart(2, "0"); // Asegura dos dígitos
     const seconds = String(date.getSeconds()).padStart(2, "0"); // Asegura dos dígitos
-
+    if (modo) {
+        return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+    }
     return `${day}-${month}-${year} ${hours}:${minutes}:${seconds}`;
+}
+export function formatTime(dateString) {
+    const date = new Date(dateString);
+    const hours = String(date.getHours()).padStart(2, "0"); // Asegura dos dígitos
+    const minutes = String(date.getMinutes()).padStart(2, "0"); // Asegura dos dígitos
+    return `${hours}:${minutes}`;
 }

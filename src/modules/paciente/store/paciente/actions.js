@@ -15,7 +15,7 @@ export const loadPacientes = async ({ commit }) => {
             fecha: formatDate(data[id].fecha)
         })
     }
-    commit('setPacientes', pacientes.sort((a, b) => new Date(b.fecha) - new Date(a.fecha)));
+    commit('setPacientes', pacientes.sort((a, b) => new Date(a.fecha) - new Date(b.fecha)));
 
 }
 export const updatePaciente = async ({ commit }, paciente) => {

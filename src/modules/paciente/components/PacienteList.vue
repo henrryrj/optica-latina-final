@@ -13,15 +13,6 @@
       </button>
     </div>
   </div>
-  <div class="row">
-    <div class="col-12 col-sm-6 col-md-6 align-self-end">
-      <div class="form-group">
-        <label for="">Pacientes</label>
-        <v-select label="nombre" :options="getPacientes" v-model="paciente"
-          @update:modelValue="pacienteSelecionado"></v-select>
-      </div>
-    </div>
-  </div>
   <div class="row mt-2">
     <div class="col-12">
       <div class="table-responsive" style="max-height: 400px; overflow-y: auto; scrollbar-width: none;">
@@ -43,14 +34,18 @@
                   v-model="textoBusqueda" autocomplete="off" />
               </td>
             </tr>
+            <tr>
+              <td colspan="5" class="text-center" v-if="filteredList.length === 0"> No hay datos</td>
+            </tr>
             <tr :tabindex="filaTrasacSal" v-for="(item, index) in filteredList" :key="index"
-              @click="seleccionarFila(index, item)" :class="{ 'table-active': filaTrasacSal === index }">
-              <th scope="row">{{ index + 1 }}</th>
+              @click="seleccionarFila(index, item)" :class="{ 'table-active': filaTrasacSal === index }"
+              class="align-middle">
+              <th scope="row text-center">{{ index + 1 }}</th>
               <td>
                 <button class="btn btn-warning btn-sm">
                   <i class="fas fa-eye me-0 me-md-2"></i><span class="d-none  d-md-inline-block">Ver Consultas</span>
                 </button>
-                <button class="btn btn-info btn-sm m-2" @click="editar">
+                <button class="btn btn-info btn-sm mx-2" @click="editar">
                   <i class="fas fa-pencil-alt"></i>
                 </button>
                 <button class="btn btn-danger btn-sm" @click="eliminar">
@@ -59,7 +54,7 @@
               </td>
               <td>{{ item.fecha }}</td>
               <td>{{ item.nombre }}</td>
-              <td class="text-end">{{ item.celular }}</td>
+              <td class="text-end py-0">{{ item.celular }}</td>
             </tr>
           </tbody>
         </table>
@@ -153,9 +148,6 @@ export default {
   created() { },
   methods: {
     ...mapActions('paciente', ['loadPaciente', 'updatePaciente', 'createPaciente', 'delPaciente', 'nombreExiste']),
-    pacienteSelecionado() {
-      console.log("pacienteSelecionado", this.paciente);
-    },
     seleccionarFila(index, item) {
       this.filaTrasacSal = index;
       this.formData = { ...item };
@@ -198,25 +190,32 @@ export default {
       this.modalInstance.hide();
     },
     async guardar() {
-      this.loadingSave = true;
-      if (this.formData.nombre === "") {
-        this.$toast.error('El Nombre no puede ser vació');
-        return;
-      }
-      if (this.modalMode === 0) {
-        const existePaciente = await this.nombreExiste(this.formData.nombre);
-        if (existePaciente) {
-          this.$toast.error(`El Paciente ${this.formData.nombre} ya existe`);
+
+      try {
+        this.loadingSave = true;
+        if (this.formData.nombre === "") {
+          this.$toast.error('El Nombre no puede ser vació');
           return;
         }
-        this.createPaciente(this.formData);
-      } else {
-        this.updatePaciente(this.formData);
+        if (this.modalMode === 0) {
+          const existePaciente = await this.nombreExiste(this.formData.nombre);
+          if (existePaciente) {
+            this.$toast.error(`El Paciente ${this.formData.nombre} ya existe`);
+            return;
+          }
+          this.createPaciente(this.formData);
+        } else {
+          this.updatePaciente(this.formData);
+        }
+        this.$toast.success("Cambios guardados correctamente");
+        this.cerrar();
+        this.limpiarFormData();
+      } catch (error) {
+        this.$toast.error(error.message);
+      } finally {
+        this.loadingSave = false;
       }
-      this.$toast.success("Cambios guardados correctamente");
-      this.modalInstance.hide();
-      this.limpiarFormData();
-      this.loadingSave = false;
+
     },
     limpiarFormData() {
       this.filaTrasacSal = -1;
@@ -226,6 +225,4 @@ export default {
 };
 </script>
 
-<style>
-
-</style>
+<style></style>
