@@ -163,7 +163,7 @@
                                 class="col-12 col-sm-12 col-md-6">
                                 <fieldset class="border border-info p-2 rounded">
                                     <legend class="float-none w-auto h6 text-center">{{ index === 0 ? 'Lejos' : 'Cerca'
-                                        }}</legend>
+                                    }}</legend>
                                     <div class="row mt-2">
                                         <div v-for="(valor, key) in medida.oi" :key="`oi-${index}-${key}`"
                                             class="col-12 col-sm-4 col-md-4 form-group">
@@ -355,49 +355,79 @@ export default {
 
         },
         validarInput(event, index, type, key) {
-            const value = event.target.value;
-            const regexSign = /^[+-]$/;
-            const regexDigit = /^\d$/;
-            const regexDotOrComma = /^[.,]$/;
+            let value = event.target.value.replace(',', '.');;
 
             if (key !== 'en') {
-                if (value[0] && regexSign.test(value[0]) && value.length > 6) {
+                // Constantes para validaciones
+                const regexSign = /^[+-]$/;
+                const regexDigit = /^\d$/;
+                const regexDotOrComma = /^[.,]$/;
+
+                const firstChar = value[0] || '';
+                const hasSign = regexSign.test(firstChar);
+
+                // Establecer límites de longitud según si tiene signo o no
+                const maxLength = hasSign ? 6 : 5;
+                if (value.length > maxLength) {
+                    event.target.value = value.slice(0, -1);
+                    value = event.target.value;
+                }
+
+                // Validar cada posición según las reglas
+                let isValid = true;
+
+                // Posición 0: debe ser signo o dígito
+                if (firstChar && !regexSign.test(firstChar) && !regexDigit.test(firstChar)) {
+                    isValid = false;
+                }
+
+                // Posición 1: debe ser dígito
+                if (isValid && value[1] && !regexDigit.test(value[1])) {
+                    isValid = false;
+                }
+
+                // Posición 2: depende de si tiene signo
+                if (isValid && value[2]) {
+                    if (hasSign && !regexDigit.test(value[2])) {
+                        isValid = false;
+                    } else if (!hasSign && !regexDotOrComma.test(value[2])) {
+                        isValid = false;
+                    }
+                }
+
+                // Posición 3: depende de si tiene signo
+                if (isValid && value[3]) {
+                    if (hasSign && !regexDotOrComma.test(value[3])) {
+                        isValid = false;
+                    } else if (!hasSign && !regexDigit.test(value[3])) {
+                        isValid = false;
+                    }
+                }
+
+                // Posición 4: debe ser dígito
+                if (isValid && value[4] && !regexDigit.test(value[4])) {
+                    isValid = false;
+                }
+
+                // Si no es válido, eliminar el último carácter
+                if (!isValid) {
                     event.target.value = value.slice(0, -1);
                 }
-                if (value[0] && !regexSign.test(value[0]) && value.length > 5) {
-                    event.target.value = value.slice(0, -1);
-                }
-                if (value[0] && !regexSign.test(value[0]) && !regexDigit.test(value[0])) {
-                    event.target.value = value.slice(0, -1);
-                }
-                if (value[1] && (!regexDigit.test(value[1]))) {
-                    event.target.value = value.slice(0, -1);
-                }
-                if (value[0] && regexDigit.test(value[0]) && value[2] && (!regexDotOrComma.test(value[2]))) {
-                    event.target.value = value.slice(0, -1);
-                }
-                if (value[0] && regexSign.test(value[0]) && value[2] && (!regexDigit.test(value[2]))) {
-                    event.target.value = value.slice(0, -1);
-                }
-                if (value[0] && regexSign.test(value[0]) && value[3] && (!regexDotOrComma.test(value[3]))) {
-                    event.target.value = value.slice(0, -1);
-                }
-                if (value[0] && !regexSign.test(value[0]) && value[3] && (!regexDigit.test(value[3]))) {
-                    event.target.value = value.slice(0, -1);
-                }
+
             } else {
-                if (value && (value.includes(',') || value.includes('.')) && value.length > 5) {
+                // Validación para el campo 'en'
+
+                if (value.includes('.') && value.length > 5) {
                     event.target.value = value.slice(0, -1);
                 }
 
-                let cadena = value.replace(',', '.');
-                let numValue = Number(cadena);
-
+                const numValue = Number(value);
                 if (isNaN(numValue) || numValue < 0 || numValue > 360) {
                     event.target.value = '';
                 }
             }
-            // Si necesitas acceder al valor dentro de `formDataConsulta`
+
+            // Actualizar el modelo
             this.formDataConsulta.medidas[index][type][key] = event.target.value;
         },
         limpiarFormData() {
